@@ -1,6 +1,5 @@
 import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:rxdart/rxdart.dart';
 
@@ -15,13 +14,22 @@ class PlayerService {
   // Default playback speed
   static const double defaultSpeed = 1.0;
   // Available speed options with 0.25 step
-  static const List<double> speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+  static const List<double> speedOptions = [
+    0.5,
+    0.75,
+    1.0,
+    1.25,
+    1.5,
+    1.75,
+    2.0
+  ];
 
   // Stream controllers for UI updates
   final BehaviorSubject<String> _fileNameController = BehaviorSubject<String>();
   final BehaviorSubject<PositionData> _positionDataController =
       BehaviorSubject<PositionData>();
-  final BehaviorSubject<double> _playbackSpeedController = BehaviorSubject<double>.seeded(defaultSpeed);
+  final BehaviorSubject<double> _playbackSpeedController =
+      BehaviorSubject<double>.seeded(defaultSpeed);
 
   // Expose streams for UI consumption
   Stream<String> get fileNameStream => _fileNameController.stream;
@@ -60,10 +68,10 @@ class PlayerService {
     if (speed < 0.5 || speed > 2.0) {
       speed = defaultSpeed; // Fallback to default if out of range
     }
-    
+
     await player.setSpeed(speed);
     _playbackSpeedController.add(speed);
-    
+
     // Save to SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(_lastPlaybackSpeedKey, speed);
@@ -73,7 +81,7 @@ class PlayerService {
   Future<void> increaseSpeed() async {
     final currentSpeed = _playbackSpeedController.value;
     final nextIndex = speedOptions.indexOf(currentSpeed) + 1;
-    
+
     if (nextIndex < speedOptions.length) {
       await setPlaybackSpeed(speedOptions[nextIndex]);
     }
@@ -83,7 +91,7 @@ class PlayerService {
   Future<void> decreaseSpeed() async {
     final currentSpeed = _playbackSpeedController.value;
     final prevIndex = speedOptions.indexOf(currentSpeed) - 1;
-    
+
     if (prevIndex >= 0) {
       await setPlaybackSpeed(speedOptions[prevIndex]);
     }
