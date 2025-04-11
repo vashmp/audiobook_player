@@ -10,15 +10,23 @@ class PlayerService {
   static const String _lastFileKey = 'last_audio_file';
   static const String _lastPositionKey = 'last_audio_position';
   static const String _lastFileNameKey = 'last_file_name';
+  static const String _lastPlaybackSpeedKey = 'last_playback_speed';
+
+  // Default playback speed
+  static const double defaultSpeed = 1.0;
+  // Available speed options with 0.25 step
+  static const List<double> speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
 
   // Stream controllers for UI updates
   final BehaviorSubject<String> _fileNameController = BehaviorSubject<String>();
   final BehaviorSubject<PositionData> _positionDataController =
       BehaviorSubject<PositionData>();
+  final BehaviorSubject<double> _playbackSpeedController = BehaviorSubject<double>.seeded(defaultSpeed);
 
   // Expose streams for UI consumption
   Stream<String> get fileNameStream => _fileNameController.stream;
   Stream<PositionData> get positionDataStream => _positionDataController.stream;
+  Stream<double> get playbackSpeedStream => _playbackSpeedController.stream;
 
   PlayerService() {
     // Initialize position tracking
@@ -37,6 +45,48 @@ class PlayerService {
     player.currentIndexStream.listen((index) {
       _updateFileName();
     });
+
+    // Load saved playback speed
+    _loadSavedPlaybackSpeed();
+  }
+
+  Future<void> _loadSavedPlaybackSpeed() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedSpeed = prefs.getDouble(_lastPlaybackSpeedKey) ?? defaultSpeed;
+    await setPlaybackSpeed(savedSpeed);
+  }
+
+  Future<void> setPlaybackSpeed(double speed) async {
+    if (speed < 0.5 || speed > 2.0) {
+      speed = defaultSpeed; // Fallback to default if out of range
+    }
+    
+    await player.setSpeed(speed);
+    _playbackSpeedController.add(speed);
+    
+    // Save to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_lastPlaybackSpeedKey, speed);
+  }
+
+  // Increase playback speed by 0.25 step
+  Future<void> increaseSpeed() async {
+    final currentSpeed = _playbackSpeedController.value;
+    final nextIndex = speedOptions.indexOf(currentSpeed) + 1;
+    
+    if (nextIndex < speedOptions.length) {
+      await setPlaybackSpeed(speedOptions[nextIndex]);
+    }
+  }
+
+  // Decrease playback speed by 0.25 step
+  Future<void> decreaseSpeed() async {
+    final currentSpeed = _playbackSpeedController.value;
+    final prevIndex = speedOptions.indexOf(currentSpeed) - 1;
+    
+    if (prevIndex >= 0) {
+      await setPlaybackSpeed(speedOptions[prevIndex]);
+    }
   }
 
   void _updateFileName() {
@@ -88,12 +138,14 @@ class PlayerService {
     final lastFile = prefs.getString(_lastFileKey);
     final lastPosition = prefs.getInt(_lastPositionKey);
     final lastName = prefs.getString(_lastFileNameKey);
+    final lastSpeed = prefs.getDouble(_lastPlaybackSpeedKey) ?? defaultSpeed;
 
     if (lastFile != null) {
       return {
         'filePath': lastFile,
         'position': lastPosition ?? 0,
         'fileName': lastName ?? path.basename(lastFile),
+        'playbackSpeed': lastSpeed,
       };
     }
     return null;
@@ -108,6 +160,7 @@ class PlayerService {
   void dispose() {
     _fileNameController.close();
     _positionDataController.close();
+    _playbackSpeedController.close();
     player.dispose();
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:audiobook_player/player/player_speed_controls.dart';
 import 'package:flutter/material.dart';
 import 'package:audiobook_player/player/player_service.dart';
 import 'package:audiobook_player/player/player_control.dart';
@@ -68,54 +69,54 @@ class _PlayerScreenState extends State<PlayerScreen> {
         ],
       ),
       body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           PlayerControls(playerService: _playerService),
-          Expanded(
-            child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.replay_10),
-                    iconSize: 40,
-                    onPressed: () {
-                      final newPosition = _playerService.player.position -
-                          Duration(seconds: 10);
-                      _playerService.seekTo(newPosition);
-                    },
-                  ),
-                  StreamBuilder<bool>(
-                    stream: _playerService.player.playingStream,
-                    builder: (context, snapshot) {
-                      final isPlaying = snapshot.data ?? false;
-                      return IconButton(
-                        icon: Icon(isPlaying
-                            ? Icons.pause_circle_filled
-                            : Icons.play_circle_filled),
-                        iconSize: 60,
-                        onPressed: () {
-                          if (isPlaying) {
-                            _playerService.player.pause();
-                          } else {
-                            _playerService.player.play();
-                          }
-                        },
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.forward_30),
-                    iconSize: 40,
-                    onPressed: () {
-                      final newPosition = _playerService.player.position +
-                          Duration(seconds: 30);
-                      _playerService.seekTo(newPosition);
-                    },
-                  ),
-                ],
-              ),
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.replay_10),
+                  iconSize: 40,
+                  onPressed: () {
+                    final newPosition =
+                        _playerService.player.position - Duration(seconds: 10);
+                    _playerService.seekTo(newPosition);
+                  },
+                ),
+                StreamBuilder<bool>(
+                  stream: _playerService.player.playingStream,
+                  builder: (context, snapshot) {
+                    final isPlaying = snapshot.data ?? false;
+                    return IconButton(
+                      icon: Icon(isPlaying
+                          ? Icons.pause_circle_filled
+                          : Icons.play_circle_filled),
+                      iconSize: 60,
+                      onPressed: () {
+                        if (isPlaying) {
+                          _playerService.player.pause();
+                        } else {
+                          _playerService.player.play();
+                        }
+                      },
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.forward_30),
+                  iconSize: 40,
+                  onPressed: () {
+                    final newPosition =
+                        _playerService.player.position + Duration(seconds: 30);
+                    _playerService.seekTo(newPosition);
+                  },
+                ),
+              ],
             ),
           ),
+          PlaybackSpeedControls(playerService: _playerService),
         ],
       ),
     );
