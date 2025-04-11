@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:audiobook_player/player/player_animation.dart';
 import 'package:audiobook_player/player/player_speed_controls.dart';
 import 'package:flutter/material.dart';
 import 'package:audiobook_player/player/player_service.dart';
@@ -71,6 +72,25 @@ class _PlayerScreenState extends State<PlayerScreen> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Center(
+            child: SizedBox(
+              height: 200,
+              child: StreamBuilder<bool>(
+                stream: _playerService.player.playingStream,
+                builder: (context, snapshot) {
+                  final isPlaying = snapshot.data ?? false;
+                  return AudioWave(
+                    barCount: 20,
+                    color: isPlaying ? Colors.deepPurple : Colors.grey,
+                    minHeight: 10,
+                    maxHeight: isPlaying ? 100 : 10,
+                    duration: Duration(milliseconds: 300),
+                    spacing: 4.0,
+                  );
+                },
+              ),
+            ),
+          ),
           PlayerControls(playerService: _playerService),
           Center(
             child: Row(
